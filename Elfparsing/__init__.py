@@ -18,6 +18,7 @@
 #
 
 import Elfparsing.flags as flags
+from addr import Addr
 from struct import pack,unpack
 
 """
@@ -66,10 +67,12 @@ class Elf():
       except Exception, e:
          print e
          return (False)
-      self.__setHeaderElf()
-      self.__setShdr()
-      self.__setPhdr()
-      self.__setSym()
+
+      if self.isElf(): # Don't go forward if it's not an ELF file ;)
+         self.__setHeaderElf()
+         self.__setShdr()
+         self.__setPhdr()
+         self.__setSym()
       return (True)
 
    """ Load Binary code """
@@ -100,7 +103,7 @@ class Elf():
    """ Return binary maped """
    def getMmapBinary(self):
       if self.mmapBinary == None:
-         print "Erro - getMmapBinary(): No file loaded"
+         print "Error - getMmapBinary(): No file loaded"
       else:
          return (self.mmapBinary)
 
@@ -117,7 +120,7 @@ class Elf():
          self.e_machine = unpack("<H", str(self.mmapBinary[18:20]))[0]
          self.e_version = unpack("<I", str(self.mmapBinary[20:24]))[0]
          if self.getArch() == flags.ELFCLASS32:
-            self.e_entry      = unpack("<I", str(self.mmapBinary[24:28]))[0]
+            self.e_entry      = Addr(unpack("<I", str(self.mmapBinary[24:28]))[0])
             self.e_phoff      = unpack("<I", str(self.mmapBinary[28:32]))[0]
             self.e_shoff      = unpack("<I", str(self.mmapBinary[32:36]))[0]
             self.e_flags      = unpack("<I", str(self.mmapBinary[36:40]))[0]
@@ -128,7 +131,7 @@ class Elf():
             self.e_shnum      = unpack("<H", str(self.mmapBinary[48:50]))[0]
             self.e_shstrndx   = unpack("<H", str(self.mmapBinary[50:52]))[0]
          elif self.getArch() == flags.ELFCLASS64:
-            self.e_entry      = unpack("<Q", str(self.mmapBinary[24:32]))[0]
+            self.e_entry      = Addr(unpack("<Q", str(self.mmapBinary[24:32]))[0])
             self.e_phoff      = unpack("<Q", str(self.mmapBinary[32:40]))[0]
             self.e_shoff      = unpack("<Q", str(self.mmapBinary[40:48]))[0]
             self.e_flags      = unpack("<I", str(self.mmapBinary[48:52]))[0]
@@ -340,7 +343,7 @@ class Elf():
    """ Return false or true if is a ELF file """
    def isElf(self):
       try:
-         if self.mmapBinary[:4] == "\x7fELF":
+         if self.mmapBinary[:4] == flags.ELFMAG:
             return (True)
          else:
             return (False)
