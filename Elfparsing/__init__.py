@@ -3,6 +3,8 @@
 #
 #    Copyright (C) 2012-07 Jonathan Salwan - http://www.twitter.com/jonathansalwan
 #
+#    Contributor: - xGeek
+#
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -667,10 +669,11 @@ class Elf():
             return str(self.mmapBinary[base:base + phdr['p_memsz']])
       return None
 
-   """ 
+   """
    Return the comment section as a string.
    Always contain compiler info : compiler,version...
    """
    def getComment(self):
       data = self.extractRawSectionByName('.comment')
       return str(data.replace("\x00","\n").strip())
+
