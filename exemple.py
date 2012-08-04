@@ -38,6 +38,12 @@ if __name__ == "__main__":
       if binary.symbolsFound():
          print "Symbols found"
          print "Addr of main function : %x" %(binary.getSymbolAddrByName("main"))
+
+      if binary.isExecutable(".text"):
+         print "Section .text is Executable"
+      else:
+         print "Section .text isn't Executable"
+
    else:
       print "Is not a Elf binary."
 

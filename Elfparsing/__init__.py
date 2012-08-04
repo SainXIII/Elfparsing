@@ -70,7 +70,7 @@ class Elf():
          print e
          return (False)
 
-      if self.isElf(): # Don't go forward if it's not an ELF file ;)
+      if self.isElf():
          self.__setHeaderElf()
          self.__setShdr()
          self.__setPhdr()
@@ -101,13 +101,13 @@ class Elf():
          File.close()
       except Exception, e:
          print e
-         return (False)
+         raise Exception("saveBinary() - Fail to save binary")
       return (True)
 
    """ Return binary maped """
    def getMmapBinary(self):
       if self.mmapBinary == None:
-         print "Error - getMmapBinary(): No file loaded"
+         raise Exception("getMmapBinary(): No file loaded")
       else:
          return (self.mmapBinary)
 
@@ -146,10 +146,8 @@ class Elf():
             self.e_shnum      = unpack("<H", str(self.mmapBinary[60:62]))[0]
             self.e_shstrndx   = unpack("<H", str(self.mmapBinary[62:64]))[0]
          return (True)
-      except Exception, e:
-         print "Error - setHeaderElf()"
-         print e
-         return (False)
+      except Exception:
+         raise Exception("setHeaderElf() - Fail to set header elf")
 
    """ Parse Program header """
    def __setPhdr(self):
@@ -183,8 +181,7 @@ class Elf():
             self.phdr_l.append(phdr)
             base = base[self.e_phentsize:]
       except:
-         print "Error setPhdr() - in parsing Phdr"
-         return (False)
+         raise Exception("setPhdr() - in parsing Phdr")
       return (True)
 
    """ Parse Section header """
@@ -225,8 +222,7 @@ class Elf():
             self.shdr_l.append(shdr)
             base = base[self.e_shentsize:]
          except:
-            print "Error setShdr() - in parsing String table"
-            return (False)
+            raise Exception("setShdr() - in parsing String table")
 
       # set name in section table from string table
       string_table = str(self.mmapBinary[(self.shdr_l[self.e_shstrndx]["sh_offset"]):])
@@ -277,8 +273,7 @@ class Elf():
             self.sym_l.append(sym)
             symbols_t = symbols_t[symbols_size:]
          except:
-            print "Error setSym() - in parsing Symbols table"
-            return (False)
+            raise Exception("setSym() - in parsing Symbols table")
 
       # set name in sym table from string table
       for i in range(symbols_num):
@@ -291,8 +286,7 @@ class Elf():
       base = self.e_phoff
 
       if len(phdr_l) != self.e_phnum:
-         print "Error importPhdrList() - len(phdr_l) !=  self.e_phnum"
-         return (False)
+         raise Exception("importPhdrList() - len(phdr_l) !=  self.e_phnum")
 
       for phdr in phdr_l:
          raw += pack("<I", phdr["p_type"])
@@ -314,6 +308,40 @@ class Elf():
 
       self.mmapBinary[base:base+len(raw)] = raw
       self.__setPhdr()
+      return (True)
+
+   """ Import shdr list. You can't delete/add a new entry """
+   def importShdrList(self, shdr_l):
+      raw = ""
+      base = self.e_shoff
+
+      if len(phdr_l) != self.e_phnum:
+         raise Exception("importShdrList() - len(shdr_l) !=  self.e_shnum")
+
+      for shdr in shdr_l:
+         raw += pack("<I", shdr["sh_name"])
+         raw += pack("<I", shdr["sh_type"])
+         if self.getArch() == flags.ELFCLASS32:
+            raw += pack("<I", shdr["sh_flags"])
+            raw += pack("<I", shdr["sh_addr"])
+            raw += pack("<I", shdr["sh_offset"])
+            raw += pack("<I", shdr["sh_size"])
+            raw += pack("<I", shdr["sh_link"])
+            raw += pack("<I", shdr["sh_info"])
+            raw += pack("<I", shdr["sh_addralign"])
+            raw += pack("<I", shdr["sh_entsize"])
+         elif self.getArch() == flags.ELFCLASS64:
+            raw += pack("<Q", shdr["sh_flags"])
+            raw += pack("<Q", shdr["sh_addr"])
+            raw += pack("<Q", shdr["sh_offset"])
+            raw += pack("<Q", shdr["sh_size"])
+            raw += pack("<I", shdr["sh_link"])
+            raw += pack("<I", shdr["sh_info"])
+            raw += pack("<Q", shdr["sh_addralign"])
+            raw += pack("<Q", shdr["sh_entsize"])
+
+      self.mmapBinary[base:base+len(raw)] = raw
+      self.__setShdr()
       return (True)
 
    """ Convert Phdr_l to raw Phdr. Return Raw Phdr """
@@ -338,7 +366,6 @@ class Elf():
             raw += pack("<Q", phdr["p_align"])
       return (raw)
 
-   # TODO faire l'importe pour shdr
    """ Convert Shdr_l to raw Shdr. Return Raw Shdr """
    def convertShdrListToRaw(self, shdr_l, arch = 32):
       raw = ""
@@ -373,14 +400,14 @@ class Elf():
          else:
             return (False)
       except:
-         print "Error - isElf()"
+         raise Exception("isElf() - Fail to get elf flag")
 
    """ Return architecture code """
    def getArch(self):
       try:
          return (unpack("<B", self.e_ident[flags.EI_CLASS])[0])
       except:
-         print "Error - getArch()"
+         raise Exception("getArch() - Fail to get architecture")
 
    def getSizeFile(self):
       return (len(self.mmapBinary))
@@ -567,7 +594,7 @@ class Elf():
             try:
                return (self.shdr_l[i][data])
             except:
-               print "Error - getSectionDataByName() - No '%s' in Shdr" %(data)
+               raise Exception("getSectionDataByName() - No '%s' in Shdr" %(data))
       return (None)
 
    """
@@ -583,7 +610,7 @@ class Elf():
             try:
                return (self.shdr_l[i][data])
             except:
-               print "Error - getSectionDataByAddr() - No '%s' in Shdr" %(data)
+               raise Exception("getSectionDataByAddr() - No '%s' in Shdr" %(data))
       return (None)
 
    """
@@ -597,7 +624,7 @@ class Elf():
       try:
          return (self.mmapBinary[offset:offset+size])
       except:
-         print "Error - extractRawSectionByName() - out of range"
+         raise Exception("extractRawSectionByName() - out of range")
 
    """
    Return section opcodes by name.
@@ -610,7 +637,7 @@ class Elf():
       try:
          return (self.mmapBinary[offset:offset+size])
       except:
-         print "Error - extractRawSectionByName() - out of range"
+         raise Exception("extractRawSectionByAddr() - out of range")
 
    """ Return raw shdr header """
    def extractRawShdr(self):
@@ -676,4 +703,22 @@ class Elf():
    def getComment(self):
       data = self.extractRawSectionByName('.comment')
       return str(data.replace("\x00","\n").strip())
+
+   """ Return True or False if section is executable """
+   def isExecutable(self, section_name):
+      flag = self.getSectionDataByName(section_name, "sh_flags")
+      if not flag:
+         raise Exception("isExecutable - section_name not found")
+      if flag & (1 << 2) != 0:
+         return True
+      return False
+
+   """ Return True or False if section is writable """
+   def isWritable(self, section_name):
+      flag = self.getSectionDataByName(section_name, "sh_flags")
+      if not flag:
+         raise Exception("isWritable - section_name not found")
+      if flag & (1 << 0) != 0:
+         return True
+      return False
 
