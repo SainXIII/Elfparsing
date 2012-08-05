@@ -5,5 +5,4 @@ TODO:
            i think a new class 'Section' will help when
            managing sections [not implemented yet]
 
-	-  Possibily to know if the stack is executable [not implemented yet]
 
