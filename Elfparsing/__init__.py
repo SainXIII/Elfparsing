@@ -25,7 +25,7 @@ from struct import pack,unpack
 
 """
 Class Elf -  This class parse/edit ELF file and return/save all informations
-             about binary.
+             about binary. Support 32 and 64 bits
 """
 class Elf():
    def __init__(self, filename=None):
