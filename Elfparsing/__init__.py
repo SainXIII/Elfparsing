@@ -214,10 +214,10 @@ class Elf():
                         'sh_addr'      : Addr(unpack("<Q", base[16:24])[0]),
                         'sh_offset'    : unpack("<Q", base[24:32])[0],
                         'sh_size'      : unpack("<Q", base[32:40])[0],
-                        'sh_link'      : unpack("<Q", base[40:48])[0],
-                        'sh_info'      : unpack("<Q", base[48:56])[0],
-                        'sh_addralign' : unpack("<Q", base[56:64])[0],
-                        'sh_entsize'   : unpack("<Q", base[64:72])[0]
+                        'sh_link'      : unpack("<I", base[40:44])[0],
+                        'sh_info'      : unpack("<I", base[44:48])[0],
+                        'sh_addralign' : unpack("<Q", base[48:56])[0],
+                        'sh_entsize'   : unpack("<Q", base[54:64])[0]
                      }
             self.shdr_l.append(shdr)
             base = base[self.e_shentsize:]
